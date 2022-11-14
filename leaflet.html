@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>CRS.Simple example - Leaflet</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+
+    <script src="https://unpkg.com/leaflet@1.5.0/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.0/dist/leaflet.css" />
+
+    <script src="js/coords.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <script src="js/buffer.js"></script>
+
+    <script src="https://unpkg.com/leaflet-responsive-popup@0.6.4/leaflet.responsive.popup.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-responsive-popup@0.6.4/leaflet.responsive.popup.css" />
+
+    <style>
+        @font-face {
+            font-family: dragon;
+            src: url("fonts/HouseOfTheDragon_PERSONAL_USE_ONLY.otf") format("opentype");
+        }
+
+        body {
+            padding: 0;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        html,
+        body {
+            height: 100%;
+            width: 100vw;
+        }
+
+        #map {
+            height: 100vh;
+            z-index: 1;
+            background-image: url(img/Cloud2.png);
+        }
+
+        .sidenav {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 10;
+            top: 0;
+            left: 0;
+            background-color: #111;
+            overflow-x: hidden;
+            padding-top: 60px;
+            transition: 0.5s;
+        }
+
+        /* The navigation menu links */
+        .sidenav a {
+            padding: 8px 8px 8px 32px;
+            text-decoration: none;
+            font-size: 25px;
+            color: #818181;
+            display: block;
+            transition: 0.3s
+        }
+
+        .sidenav span {
+            padding: 8px 8px 8px 32px;
+            text-decoration: none;
+            font-size: 14px;
+            color: #818181;
+            display: block;
+            transition: 0.3s
+        }
+
+        /* When you mouse over the navigation links, change their color */
+        .sidenav a:hover,
+        .offcanvas a:focus {
+            color: #f1f1f1;
+        }
+
+        /* Position and style the close button (top right corner) */
+        .sidenav .closebtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+        }
+
+        /* Style page content - use this if you want to push the page content to the right when you open the side navigation */
+        #main {
+            transition: margin-left .5s;
+            padding: 0px;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        /* Add a black background color to the top navigation */
+        .topnav {
+            background-color: #555;
+            overflow: hidden;
+            padding: 2px 2px 2px 2px;
+            display: table;
+        }
+
+        /* Style the links inside the navigation bar */
+        .topnav a {
+            float: left;
+            display: block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 12px 12px;
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        .topnav_title {
+            background-color: #555;
+            overflow: hidden;
+            padding: 2px 2px 2px 20px;
+            display: table-cell;
+            width: 100%;
+            vertical-align: middle;
+        }
+
+        .topnav_title span {
+            float: left;
+            display: block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 0px 0px;
+            text-decoration: none;
+            font-size: 20px;
+        }
+
+        /* Change the color of links on hover */
+        .topnav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+        /* Add a color to the active/current link */
+        .topnav a.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        /* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
+        @media screen and (max-height: 450px) {
+            .sidenav {
+                padding-top: 15px;
+            }
+
+            .sidenav a {
+                font-size: 18px;
+            }
+        }
+
+        #ico {
+            display: none;
+        }
+
+        .menu {
+            background: #000;
+            display: none;
+            padding: 5px;
+            width: 320px;
+        }
+
+        .leaflet-left {
+            left: 60px;
+        }
+
+        #menu-icon {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            padding: 2px;
+            top: 10px;
+            left: 20px;
+            z-index: 5;
+            border: 2px solid rgba(0, 0, 0, 0.4);
+            background-position: 50% 50%;
+            background-repeat: no-repeat;
+            display: block;
+            border-radius: 5px;
+            background-color: white;
+        }
+
+        h1 {
+            padding: 0px;
+            margin: 0px;
+        }
+
+        /* .leaflet-control-layers-toggle{
+            background-image: url(img/MP\ Logo\ Star.svg);
+        } */
+
+
+        .leaflet-popup-content-wrapper,
+        .leaflet-popup-tip {
+            color: #333;
+            background: none;
+            box-shadow: none !important;
+            background-image: url(img/Popup.png);
+            background-repeat: no-repeat;
+            width: 524px;
+            height: 276px;
+        }
+
+        .leaflet-popup-content {
+            width: 530px !important;
+            height: 280px !important;
+        }
+
+        .pop {
+            display: flex;
+            flex-direction: column;
+            max-width: 458px;
+            padding: 10px 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: center;
+            font-family: 'dragon';
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .pop-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="sideNavigation" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <a href="#dialog_about">Home</a>
+    </div>
+
+
+
+
+    <div id="main">
+        <!-- <div style="position: absolute;">
+            <a href="#" id="menu-icon" onclick="openNav()">
+                <img src="img/MP Logo Star.svg" alt="" style="width: 40px;height:40px;">
+            </a>
+        </div> -->
+        <div id='map'></div>
+    </div>
+
+
+    <script>
+
+        const drawPoly = [];
+        //for development only 
+        const mainData = {
+            data: {},
+            markers: []
+        };
+        const img = {
+            x: 5400,  // original width of image 
+            y: 4050   // original height of image
+        }
+
+
+        // create the map
+        var map = L.map('map', {
+            // crs: L.CRS.Simple,
+            maxZoom: 5,
+            minZoom: 2,
+            zoomControl: false,
+            preferCanvas: true,
+            noWrap: true,
+            edgeBufferTiles: 20,
+            //inertia: false
+            maxBounds: mapBounds,
+            maxBoundsViscosity: 1.0
+        })
+
+        var rc = new L.RasterCoords(map, [img.x, img.y])
+        var mapBounds = new L.LatLngBounds(
+            rc.unproject([1, img.y], 8),
+            rc.unproject([img.x, 1], 8)
+        );
+
+        var town = L.layerGroup([]);
+        var boss = L.layerGroup([]);
+        var city = L.layerGroup([]);
+
+        var overlayMaps = {
+            // "<img src='img/icons/hippo.png' width='10' height='10'> Town": caveGroup,
+            "Towns": town,
+            "Bosses": boss,
+            "Cities": city,
+        };
+
+        //L.imageOverlay(imageUrl, imageBounds).bringToFront();
+
+        // assign map and image dimensions
+        map.setView(rc.unproject([img.x / 2, img.y / 2]), 2)
+        map.setZoom(2)
+
+        const tileLayer = L.tileLayer('tiles/{z}/{x}/{y}.png', {
+            noWrap: true,
+            preferCanvas: true,
+            bounds: mapBounds
+        }).addTo(map)
+
+        L.control.zoom({ position: 'topright' }).addTo(map);
+        // const layers = L.control.layers({},
+        //     overlayMaps,
+        //     { collapsed: true, position: 'topleft' }).addTo(map);
+
+        map.setMaxBounds(mapBounds);
+
+        map.on("click", e => {
+            const c = rc.project(e.latlng);
+            console.log('c', e.latlng, c);
+            const { x, y } = c
+            drawPoly.push(c)
+        })
+
+
+        // fetch("data/data.json").then(data => data.json()).then(json => {
+        //     console.log('json', json);
+        //     //TOWNS
+        //     json.towns.forEach(town => {
+        //         drawPolygon({
+        //             coords: town.polygon,
+        //             data: town
+        //         })
+        //     })
+        // })
+
+        function unproject(arr) {
+            const { lat, lng } = rc.unproject(arr)
+            return [lng, lat]
+        }
+
+
+        function drawPolygon({ coords, color = "white", dashArray = false, data }) {
+
+            console.log('data', data.type,);
+            if (!data.iconCoords) return;
+            const imageUrl = data.icon
+            const imageBounds = data.iconCoords.map(i => unproject(i).reverse())
+            var icon = L.imageOverlay(imageUrl, imageBounds)
+
+            if (data.type.toLowerCase() === 'boss') {
+                boss.addLayer(icon).addTo(map)
+            }
+            if (data.type.toLowerCase() === 'city') {
+                city.addLayer(icon).addTo(map)
+            }
+            if (data.type.toLowerCase() === 'town') {
+                town.addLayer(icon).addTo(map)
+            }
+
+
+            const popupContent = `
+                <div class="pop">
+                    <div class="header">${data.name}</div>
+                    <div class="pop-content">
+                        <div><b style="text-transform: capitalize;">${data.type}</b></div>
+                        <div><b>${data.biome}</b></div>
+                    </div>
+                    <div class="pop-content">
+                        ${data.info}
+                    </div>
+                </div>
+            `
+            const unpCoords = coords.map(c => {
+                return rc.unproject([c.x, c.y])
+            })
+
+            const polygon = L.polygon(unpCoords, {
+                color,
+                "fillOpacity": 0,
+                dashArray: dashArray ? '5,10' : '',
+                "opacity": 0
+            });
+
+            // polygon.on('click', function (e) {
+            //     console.log('e', e, data);
+            //     L.popup()
+            //     .setLatLng(e.latlng)
+            //     .setContent(popupContent)
+            //     .openOn(map);
+            // });
+
+            var popup = L.responsivePopup().setContent(popupContent).openPopup();
+            polygon.bindPopup(popup);
+            polygon.addTo(map);
+
+            return polygon;
+        }
+
+
+        function openNav() {
+            document.getElementById("sideNavigation").style.width = "250px";
+            document.getElementById("main").style.marginLeft = "250px";
+        }
+
+        function closeNav() {
+            document.getElementById("sideNavigation").style.width = "0";
+            document.getElementById("main").style.marginLeft = "0";
+        }
+    </script>
+</body>
+
+</html>
