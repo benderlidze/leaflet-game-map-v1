@@ -310,7 +310,7 @@
         map.setView(rc.unproject([img.x / 2, img.y / 2]), 2)
         map.setZoom(2)
 
-        const tileLayer = L.tileLayer('tiles/{z}/{x}/{y}.png', {
+        const tileLayer = L.tileLayer('https://serg.one/leaflet-game-map-v1/tiles/{z}/{x}/{y}.png', {
             noWrap: true,
             preferCanvas: true,
             bounds: mapBounds
