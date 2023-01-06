@@ -16,6 +16,7 @@
 
     <script src="https://unpkg.com/leaflet-responsive-popup@0.6.4/leaflet.responsive.popup.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-responsive-popup@0.6.4/leaflet.responsive.popup.css" />
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 
     <style>
         @font-face {
@@ -198,7 +199,7 @@
         } */
 
 
-        .leaflet-popup-content-wrapper,
+        /* .leaflet-popup-content-wrapper,
         .leaflet-popup-tip {
             color: #333;
             background: none;
@@ -212,7 +213,7 @@
         .leaflet-popup-content {
             width: 530px !important;
             height: 280px !important;
-        }
+        } */
 
         .pop {
             display: flex;
@@ -277,7 +278,7 @@
         var map = L.map('map', {
             // crs: L.CRS.Simple,
             maxZoom: 5,
-            minZoom: 2,
+            minZoom: 3,
             zoomControl: false,
             preferCanvas: true,
             noWrap: true,
@@ -331,16 +332,17 @@
         })
 
 
-        // fetch("data/data.json").then(data => data.json()).then(json => {
-        //     console.log('json', json);
-        //     //TOWNS
-        //     json.towns.forEach(town => {
-        //         drawPolygon({
-        //             coords: town.polygon,
-        //             data: town
-        //         })
-        //     })
-        // })
+        d3.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vRZUb1SfGXknaFaZZO-j7LQfrpqShztFmDCImxiCQNxqhF4uwPMEgUNqKAQpZ4BzPNyZfTtJGdf26ki/pub?output=csv")
+            .then(json => {
+                console.log('json', json);
+                //TOWNS
+                json.forEach(town => {
+                    drawPolygon({
+                        coords: JSON.parse(town.polygon),
+                        data: town
+                    })
+                })
+            })
 
         function unproject(arr) {
             const { lat, lng } = rc.unproject(arr)
@@ -350,32 +352,27 @@
 
         function drawPolygon({ coords, color = "white", dashArray = false, data }) {
 
-            console.log('data', data.type,);
-            if (!data.iconCoords) return;
-            const imageUrl = data.icon
-            const imageBounds = data.iconCoords.map(i => unproject(i).reverse())
-            var icon = L.imageOverlay(imageUrl, imageBounds)
+            console.log('data', coords, data.type,);
 
-            if (data.type.toLowerCase() === 'boss') {
-                boss.addLayer(icon).addTo(map)
-            }
-            if (data.type.toLowerCase() === 'city') {
-                city.addLayer(icon).addTo(map)
-            }
-            if (data.type.toLowerCase() === 'town') {
-                town.addLayer(icon).addTo(map)
-            }
-
+            
+            // const imageUrl = data.icon
+            // const imageBounds = data.iconCoords.map(i => unproject(i).reverse())
+            // var icon = L.imageOverlay(imageUrl, imageBounds)
+            // if (data.type.toLowerCase() === 'boss') {
+            //     boss.addLayer(icon).addTo(map)
+            // }
+            // if (data.type.toLowerCase() === 'city') {
+            //     city.addLayer(icon).addTo(map)
+            // }
+            // if (data.type.toLowerCase() === 'town') {
+            //     town.addLayer(icon).addTo(map)
+            // }
 
             const popupContent = `
                 <div class="pop">
                     <div class="header">${data.name}</div>
                     <div class="pop-content">
-                        <div><b style="text-transform: capitalize;">${data.type}</b></div>
-                        <div><b>${data.biome}</b></div>
-                    </div>
-                    <div class="pop-content">
-                        ${data.info}
+                        ${data.descr}
                     </div>
                 </div>
             `
@@ -383,11 +380,13 @@
                 return rc.unproject([c.x, c.y])
             })
 
+            console.log('unpCoords',unpCoords);
+
             const polygon = L.polygon(unpCoords, {
                 color,
-                "fillOpacity": 0,
-                dashArray: dashArray ? '5,10' : '',
-                "opacity": 0
+                "fillOpacity": 0.5,
+                // dashArray: dashArray ? '5,10' : '',
+                "opacity": 0.5
             });
 
             // polygon.on('click', function (e) {
@@ -401,7 +400,6 @@
             var popup = L.responsivePopup().setContent(popupContent).openPopup();
             polygon.bindPopup(popup);
             polygon.addTo(map);
-
             return polygon;
         }
 
