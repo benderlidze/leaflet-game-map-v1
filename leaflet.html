@@ -354,7 +354,7 @@
 
             console.log('data', coords, data.type,);
 
-            
+
             // const imageUrl = data.icon
             // const imageBounds = data.iconCoords.map(i => unproject(i).reverse())
             // var icon = L.imageOverlay(imageUrl, imageBounds)
@@ -380,7 +380,7 @@
                 return rc.unproject([c.x, c.y])
             })
 
-            console.log('unpCoords',unpCoords);
+            console.log('unpCoords', unpCoords);
 
             const polygon = L.polygon(unpCoords, {
                 color,
@@ -397,9 +397,24 @@
             //     .openOn(map);
             // });
 
-            var popup = L.responsivePopup().setContent(popupContent).openPopup();
-            polygon.bindPopup(popup);
-            polygon.addTo(map);
+            var LeafIcon = L.Icon.extend({
+                options: {
+                    iconSize: [66, 66],
+                    iconAnchor: [33, 33],
+                    popupAnchor: [0, -33]
+                }
+            });
+            var greenIcon = new LeafIcon({
+                iconUrl: 'icons/icon.png',
+            })
+            L.marker(unpCoords[0], { icon: greenIcon })
+                .bindPopup(popupContent)
+                .addTo(map);
+
+
+            // var popup = L.responsivePopup().setContent(popupContent).openPopup();
+            // polygon.bindPopup(popup);
+            // polygon.addTo(map);
             return polygon;
         }
 
