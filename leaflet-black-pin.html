@@ -391,13 +391,13 @@
 
             var LeafIcon = L.Icon.extend({
                 options: {
-                    iconSize: [30, 30],
-                    iconAnchor: [15, 15],
-                    popupAnchor: [0, -10]
+                    iconSize: [30, 40],
+                    iconAnchor: [15, 40],
+                    popupAnchor: [0, -33]
                 }
             });
             var greenIcon = new LeafIcon({
-                iconUrl: 'icons/icon.png',
+                iconUrl: 'icons/maps-pin-black-icon.png',
             })
             L.marker(unpCoords[0], { icon: greenIcon })
                 .bindPopup(popupContent)
